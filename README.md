@@ -2,7 +2,7 @@
 # Student Expense Tracker
 A command-line tool built in Python to help college students track daily expenses, set monthly budgets, understand spending patterns, and use basic AI/ML techniques to predict and analyze financial behaviour.
 
-**Author:** Jishant Tanwar  
+**Name:** Jishant Tanwar  
 **Reg. No.:** 25BHI10093  
 ---
 ## Why I Built This
