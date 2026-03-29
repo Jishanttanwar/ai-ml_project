@@ -1,9 +1,7 @@
-"""
-Unit tests for Student Expense Tracker
+"""Unit tests for Student Expense Tracker
 Author: Jishant Tanwar
 Reg. No.: 25BHI10093
 """
-
 import os
 import sys
 import json
@@ -23,10 +21,7 @@ import tracker
 tracker.DATA_FILE = os.path.join(TEST_DIR, "expenses.json")
 
 BUDGET_FILE = os.path.join(TEST_DIR, "budgets.json")
-
-
 class TestAddExpense(unittest.TestCase):
-
     def setUp(self):
         # Clean slate before each test
         if os.path.exists(tracker.DATA_FILE):
@@ -70,7 +65,6 @@ class TestAddExpense(unittest.TestCase):
         ids = [e["id"] for e in data]
         self.assertEqual(len(ids), len(set(ids)))
 
-
 class TestDeleteExpense(unittest.TestCase):
 
     def setUp(self):
@@ -90,7 +84,6 @@ class TestDeleteExpense(unittest.TestCase):
         tracker.delete_expense(9999)
         data = tracker.load_data()
         self.assertEqual(len(data), 2)
-
 
 class TestSummary(unittest.TestCase):
 
@@ -115,7 +108,6 @@ class TestSummary(unittest.TestCase):
         except Exception as e:
             self.fail(f"show_summary on empty data raised: {e}")
 
-
 class TestLoadSave(unittest.TestCase):
 
     def setUp(self):
@@ -139,7 +131,6 @@ class TestLoadSave(unittest.TestCase):
         data = tracker.load_data()
         self.assertEqual(data, [])
 
-
 class TestExport(unittest.TestCase):
 
     def setUp(self):
@@ -161,10 +152,8 @@ class TestExport(unittest.TestCase):
             rows = list(csv.DictReader(f))
         self.assertEqual(len(rows), 2)
 
-
 def teardown_module():
     shutil.rmtree(TEST_DIR, ignore_errors=True)
-
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
