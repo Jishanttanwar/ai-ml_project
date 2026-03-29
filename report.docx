@@ -1,79 +1,101 @@
 1. Problem Statement
 College students living in hostels typically have a fixed monthly allowance sent by their parents. Despite this, it is very common to run short of money by the middle of the month — sometimes without a clear reason. The usual response is to borrow from friends or ask for more money early, which is both inconvenient and financially unhealthy.
 The core issue is a lack of visibility into spending. Most students do not track where their money goes on a daily basis. Expenses feel small in isolation — a cup of tea, an auto ride, a snack — but add up significantly over 30 days. Without any record, it becomes impossible to identify problem areas or correct the pattern.
-Existing tools like spreadsheets require too much setup and are tedious to maintain from a phone. Banking apps show transactions but do not categorize them in ways that are useful for students. General budgeting apps often require creating accounts, syncing with bank details, or paying for premium features.
-What was needed was something simple: a way to log an expense in one command, see how much has been spent in a category, and know immediately how much of this month's budget is still left.
+Existing tools like spreadsheets require too much setup and are tedious to maintain from a phone. Banking apps show transactions but do not categorize them usefully. General budgeting apps often require creating accounts, syncing with bank details, or paying for premium features.
+What was needed was something simple: a way to log an expense in one command, see how much has been spent per category, know how much budget remains — and ideally, gain some insight into spending trends using data-driven methods.
 
 2. Why This Problem Matters
-This is not an abstract problem. The habit of tracking money, however simple, teaches financial discipline that stays with a person long after college. Students who develop some form of expense awareness during their college years tend to handle financial planning better in professional life as well.
+This is not an abstract problem. The habit of tracking money teaches financial discipline that stays with a person long after college. Students who develop some form of expense awareness during their college years tend to handle financial planning better in professional life as well.
 At a more immediate level, overspending in one area — typically food and entertainment — often means cutting back on necessities like medicine or stationery. Having a clear picture of spending prevents these unplanned situations.
-The problem is also specific and bounded enough that a relatively small Python program can solve it meaningfully. It does not need machine learning or a database. It needs good structure, reliable file handling, and a clean interface.
-3. Solution Overview
-I built a command-line expense tracker that runs entirely on Python's standard library. The program offers the following features:
-Add an expense with an amount, category, optional note, and date
-List all expenses, with optional filtering by category or month
-View a category-wise summary showing amounts and percentage share
-Set a monthly budget and check how much has been used
-Delete an incorrect entry by its ID
-Export all expenses to a CSV file for external use
+Adding AI/ML features makes the project more than just a tracker. Predicting next month's spend gives the student actionable information before a problem occurs. Clustering daily spending helps identify which days tend to be expensive and why. A category classifier removes friction from the logging process itself.
 
-All data is stored locally in a JSON file. There is no internet requirement, no login, and no dependencies beyond Python itself. The entire project runs with a single command.
-The design prioritizes speed of use. A student should be able to log an expense in under five seconds.
+3. Solution Overview
+The project is a command-line expense tracker that runs on Python's standard library, with NumPy added for the AI/ML module. It is split into two files: tracker.py for the core features, and ml_insights.py for the machine learning functionality.
+Core features:
+Add an expense with amount, category, optional note, and date
+List all expenses with optional filtering by category or month
+View a category-wise summary with percentage breakdown
+Set a monthly budget and check how much has been used
+Delete an incorrect entry by ID
+Export all data to CSV
+
+AI/ML features:
+predict — Linear Regression with gradient descent to forecast next month's spend
+cluster — K-Means Clustering to group daily spending into behavior patterns
+classify — Keyword Classifier to suggest a category from an expense note
 
 4. Technical Implementation
 4.1 File Structure
-The project consists of two Python files and a data directory:
-tracker.py          # main program with all functions
-test_tracker.py     # 15 unit tests using unittest
-data/expenses.json  # auto-created, stores all entries
-data/budgets.json   # stores monthly budget values
-4.2 Data Storage
-Expenses are stored as a JSON array. Each entry is a dictionary with five fields: id, amount, category, note, and date. JSON was chosen over CSV because it handles missing or optional fields (like notes) more cleanly, and is easier to manipulate in Python without any library.
-A separate budgets.json stores month-to-budget mappings, keyed by 'YYYY-MM' strings. This allows the user to set and retrieve budgets for any month independently.
-4.3 Core Functions
-The program is organized as a set of focused functions, each responsible for one action. Key ones include:
-add_expense() — validates input, generates an ID, and appends to the JSON file
-list_expenses() — reads and filters entries, prints a formatted table
-show_summary() — groups by category using defaultdict, computes percentages and draws a simple bar
-set_budget() and check_budget() — read/write budgets.json and compare against actual spend
-export_csv() — writes the JSON data out using Python's csv.DictWriter
+tracker.py          — main program, CLI dispatcher, all core features
+ml_insights.py      — AI/ML module (Linear Regression, K-Means, Classifier)
+test_tracker.py     — 15 unit tests using unittest
+data/expenses.json  — auto-created, stores all entries as JSON array
+data/budgets.json   — stores month-to-budget mappings
+4.2 Core Data Layer
+Expenses are stored as a JSON array. Each entry is a dictionary with five fields: id, amount, category, note, and date. JSON was chosen over CSV because it handles optional fields more cleanly and is easy to manipulate directly in Python without any library. A separate budgets.json stores month-to-amount mappings keyed by YYYY-MM strings.
+4.3 Command-Line Interface
+The interface uses sys.argv directly. The main() function reads the first argument as the command and dispatches to the appropriate function. This keeps the architecture transparent — there is no hidden argument parsing framework, which makes the code easier to read and explain.
 4.4 Input Validation
-The program validates every input before saving. Amount must be a positive number. Category must be from the fixed list of eight options. Date, if provided, must follow YYYY-MM-DD format and is verified using strptime. If any validation fails, the user gets a clear error message and nothing is written to disk.
-4.5 Command-Line Interface
-The interface uses sys.argv directly, without argparse. This was a deliberate choice — parsing arguments manually keeps the code simpler and avoids auto-generated help text that obscures the logic. The main() function reads the first argument as the command and dispatches to the appropriate function.
+Every input is validated before writing to disk. Amount must be a positive number. Category must be one of the eight defined options. Date format is verified using datetime.strptime(). If any check fails, the user gets a clear error message and nothing is written.
 
-5. Python Concepts Applied
-This project made use of the following concepts from the course:
-File I/O — reading and writing JSON and CSV files using open(), json.load/dump, csv.DictWriter
-Exception handling — try/except for JSON parsing errors, type conversion, and invalid input
-Functions — each feature is a named function with a single responsibility
-Lists and dictionaries — expenses are lists of dicts; budgets are dict of month-to-value
-String formatting — f-strings used throughout for clean, aligned terminal output
-datetime module — date.today() for current date, strptime() for validation
-os module — checking if files exist, creating directories with makedirs
-collections.defaultdict — for grouping amounts by category in the summary function
-sys.argv — for reading command-line arguments
-Unit testing with unittest — 15 test cases covering all major functions
+5. AI/ML Module — ml_insights.py
+All three ML algorithms are implemented from scratch using only NumPy. No scikit-learn, no statsmodels, no external ML library. This was a deliberate choice — implementing the algorithms manually makes it clear what each one is actually doing, rather than treating them as black boxes.
+5.1 Linear Regression (predict command)
+Linear Regression fits a straight line through data points to model the relationship between an input variable and an output. Here, the input is the month index (1, 2, 3...) and the output is the total spending in that month. The goal is to learn two parameters — weight w and bias b — such that:
+predicted_spend = w * month_index + b
+The parameters are learned using gradient descent. Starting from w=0 and b=0, the algorithm repeatedly computes the prediction error (Mean Squared Error), calculates how much each parameter contributed to that error (gradient), and nudges the parameters in the direction that reduces error:
+dw = (2/n) * sum(error * x)
+db = (2/n) * sum(error)
+w = w - learning_rate * dw
+b = b - learning_rate * db
+The input is normalized before training (zero mean, unit variance) to keep the gradient updates stable. After 1000 iterations, the learned parameters are converted back to the original scale for display. The R² score is also computed to indicate how well the line fits the data — a value close to 1 means the model explains most of the variation in spending.
+The next month is predicted by plugging the next index into the learned equation. The output is clipped to zero to prevent negative predictions.
+5.2 K-Means Clustering (cluster command)
+K-Means groups data points into k clusters by minimizing the distance between each point and its assigned cluster centre (centroid). Here, each data point is the total spending on a single day, and k=3 produces three clusters: Low Spend, Moderate Spend, and High Spend days.
+The algorithm works in three steps repeated until convergence:
+Initialization — centroids are placed at evenly spaced positions in the sorted data, avoiding the bad-luck problem of random init placing two centroids in the same dense region
+Assignment — each day is assigned to the cluster whose centroid is closest (minimum absolute distance in 1D)
+Update — each centroid is recomputed as the mean of all points assigned to it
+The loop stops when the centroids stop moving (np.allclose). After clustering, the clusters are sorted by centroid value so that cluster 0 is always the lowest-spend group. The dominant cluster is the one with the most member days.
+5.3 Keyword Classifier (classify command)
+The classifier takes a free-text expense note and predicts which category it belongs to. It uses a bag-of-words approach: the note is tokenized by splitting on spaces, each token is matched against a keyword dictionary for each category, and scores are accumulated.
+Exact keyword matches contribute 1 point. Partial matches (where the token is a substring of a keyword or vice versa) contribute 0.5 points. This handles common abbreviations and spelling variations. Final scores are normalized by the total score to produce a confidence percentage between 0 and 1.
+The keyword dictionary covers 7 categories with 15 to 20 keywords each, drawn from common Indian college student spending vocabulary — mess, auto, Jio, xerox, and so on. If no keywords match, the note is classified as 'other'.
 
-6. Challenges Faced
-Challenge 1: Designing the command interface
-The biggest design question was how to handle optional arguments. For example, 'list' accepts an optional category and an optional month, in any order. I solved this by checking whether each argument looks like a month string (matches YYYY-MM format with a single dash and seven characters). This avoids the need for named flags and keeps the command syntax natural.
-Challenge 2: Consistent ID generation
-At first I used a simple counter starting from 1, but this broke after deletions — the next entry would get an ID that had already existed. I fixed this by computing the maximum existing ID and adding 1, so IDs are always unique even after some entries are deleted.
-Challenge 3: Testing without affecting real data
-Running tests was overwriting the actual expenses.json file. I solved this by patching the DATA_FILE variable at the top of the test module, pointing it to a temporary directory created by tempfile.mkdtemp(). Each test class runs setUp() to clear this temp file, giving each test a clean starting state.
-Challenge 4: Readable terminal output
-Formatting a table in a terminal without an external library like tabulate requires careful use of f-strings with width specifiers. Getting the columns to align correctly — especially when Indian Rupee amounts vary in length — took a few iterations to get right. I ended up using fixed column widths with right-aligned amounts.
+6. Python Concepts Applied
+File I/O — reading and writing JSON and CSV using open(), json.load/dump, csv.DictWriter
+Exception handling — try/except for JSON parse errors, type conversion, date validation
+Functions — each feature is a named function with a single clear responsibility
+Lists and dictionaries — expenses as list of dicts, budgets as dict of month strings
+f-strings — used throughout for clean, aligned terminal output
+datetime module — date.today() for current date, strptime() for format validation
+os module — existence checks, makedirs for auto-creating data directory
+collections.defaultdict — grouping amounts by category in summary and clustering
+sys.argv — reading command-line arguments without external libraries
+NumPy arrays — vectorized operations for gradient descent, distance computation, centroid updates
+Unit testing with unittest — 15 tests across 5 test classes, temp directory isolation
 
-7. What I Learned
-Building a complete, working tool from scratch — rather than completing exercises — changed how I thought about code structure. In exercises, the problem is already defined and the expected output is given. Here, I had to make dozens of small decisions: what the command syntax should look like, what happens when a file is empty or corrupted, how to generate IDs that stay unique, how to test without side effects.
-I also learned that simplicity is not the same as being basic. This project uses no external libraries, has no web interface, and stores data in flat JSON files. But it does its job reliably, has proper input validation, handles edge cases, and includes tests. That, I think, is what 'well-executed' means.
-Working with the standard library pushed me to understand what Python actually provides out of the box. I had assumed I would need to install something for CSV writing or argument parsing, but the standard library covered everything I needed. That was genuinely useful to discover.
-Writing tests after writing the code (as opposed to beforehand) also showed me how useful they are for catching bugs I had not considered — the ID collision issue, for instance, showed up immediately when I wrote the test for unique IDs.
+7. Challenges Faced
+Designing the command interface
+The trickiest design decision was handling optional arguments for the list command, which accepts an optional category and an optional month in any order. The solution was to check whether each argument looks like a YYYY-MM string. This keeps the syntax natural without requiring named flags.
+Stable gradient descent
+Early versions of the linear regression had unstable training when monthly totals were large numbers (in the hundreds or thousands). The gradients were too large and the parameters would oscillate or diverge. Normalizing the input to zero mean and unit variance before training fixed this completely. The learned parameters are then converted back to the original scale for display.
+K-Means initialization
+Using random centroid initialization sometimes led to two centroids starting in the same cluster, causing one cluster to have zero members. Replacing random init with evenly spaced indices across the sorted data resolved this and made the results consistent across runs.
+Testing without affecting real data
+Running unit tests was overwriting the actual expenses.json. This was fixed by patching the DATA_FILE variable in the test module to point at a temporary directory created by tempfile.mkdtemp(). Each test class has a setUp() method that wipes this temp file, giving every test a clean state.
+Quote handling in CLI
+Python's sys.argv splits on spaces, so expense notes with multiple words need to be quoted in the shell. The classify command joins all arguments after the command name with spaces, which allows users to type notes naturally without worrying about which shell quoting style to use.
 
-8. How to Run
-Requirements: Python 3.7 or above. No external libraries.
-Basic usage:
+8. What I Learned
+Implementing gradient descent manually — rather than calling model.fit() — made the algorithm genuinely understandable. The update rule is not magic; it is just moving each parameter a small step in the direction that reduces the error. Seeing the R² score improve from near zero to 0.95 as more months of data were added made the concept of model fit concrete.
+K-Means clustering feels intuitive in theory but has real implementation details that matter: what happens when a cluster is empty, how initialization affects results, and how to define convergence. Working through these cases in code is a different experience from reading about them.
+I also learned that building a complete tool from scratch requires many small decisions that exercises never ask you to make — what the command syntax should be, how to handle corrupted data files, how to keep IDs unique after deletions. These decisions shape the quality of the final product more than the choice of algorithm.
+Finally, writing tests for the ML functions would have been difficult because the outputs depend on the training data. This showed me the difference between functions that are easy to test (pure logic, fixed input-output) and functions that are better validated by running them on realistic data and checking that the output makes intuitive sense.
+
+9. How to Run
+Requirements: Python 3.7+, NumPy (pip install numpy).
+Core commands:
 python tracker.py add 150 food "lunch at mess"
 python tracker.py list
 python tracker.py summary 2025-03
@@ -81,11 +103,16 @@ python tracker.py budget 3000
 python tracker.py status
 python tracker.py export
 
-To run the test suite:
-python test_tracker.py
-The full README inside the GitHub repository covers setup, all commands, examples, and the data format in detail.
+AI/ML commands:
+python tracker.py predict
+python tracker.py cluster
+python tracker.py classify "auto to railway station"
 
-9. Conclusion
-The Student Expense Tracker is a small but complete tool that solves a real problem I face personally. It was built entirely with Python standard library tools, follows clean code practices, handles errors properly, and is covered by a set of unit tests.
-More importantly, it is a tool I will actually keep using. The best test of whether a project is genuinely useful is whether the person who built it reaches for it after the submission deadline — and I intend to.
+Run tests:
+python test_tracker.py
+
+10. Conclusion
+The Student Expense Tracker started as a straightforward Python project solving a real problem — tracking hostel expenses. Adding the AI/ML module gave it a second layer: not just recording what happened, but using data to understand patterns and anticipate what comes next.
+The three ML implementations — linear regression, k-means, and the keyword classifier — are small but complete. They use the actual algorithms, not simplified toy versions. They handle edge cases. They run on real data and produce outputs that make sense.
+More than the technical parts, this project taught me that a well-executed small tool is worth more than a poorly-executed large one. The goal was never to build something complex — it was to build something that works correctly, is easy to use, and reflects genuine thought about the problem.
 
