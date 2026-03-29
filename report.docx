@@ -1,0 +1,91 @@
+1. Problem Statement
+College students living in hostels typically have a fixed monthly allowance sent by their parents. Despite this, it is very common to run short of money by the middle of the month — sometimes without a clear reason. The usual response is to borrow from friends or ask for more money early, which is both inconvenient and financially unhealthy.
+The core issue is a lack of visibility into spending. Most students do not track where their money goes on a daily basis. Expenses feel small in isolation — a cup of tea, an auto ride, a snack — but add up significantly over 30 days. Without any record, it becomes impossible to identify problem areas or correct the pattern.
+Existing tools like spreadsheets require too much setup and are tedious to maintain from a phone. Banking apps show transactions but do not categorize them in ways that are useful for students. General budgeting apps often require creating accounts, syncing with bank details, or paying for premium features.
+What was needed was something simple: a way to log an expense in one command, see how much has been spent in a category, and know immediately how much of this month's budget is still left.
+
+2. Why This Problem Matters
+This is not an abstract problem. The habit of tracking money, however simple, teaches financial discipline that stays with a person long after college. Students who develop some form of expense awareness during their college years tend to handle financial planning better in professional life as well.
+At a more immediate level, overspending in one area — typically food and entertainment — often means cutting back on necessities like medicine or stationery. Having a clear picture of spending prevents these unplanned situations.
+The problem is also specific and bounded enough that a relatively small Python program can solve it meaningfully. It does not need machine learning or a database. It needs good structure, reliable file handling, and a clean interface.
+3. Solution Overview
+I built a command-line expense tracker that runs entirely on Python's standard library. The program offers the following features:
+Add an expense with an amount, category, optional note, and date
+List all expenses, with optional filtering by category or month
+View a category-wise summary showing amounts and percentage share
+Set a monthly budget and check how much has been used
+Delete an incorrect entry by its ID
+Export all expenses to a CSV file for external use
+
+All data is stored locally in a JSON file. There is no internet requirement, no login, and no dependencies beyond Python itself. The entire project runs with a single command.
+The design prioritizes speed of use. A student should be able to log an expense in under five seconds.
+
+4. Technical Implementation
+4.1 File Structure
+The project consists of two Python files and a data directory:
+tracker.py          # main program with all functions
+test_tracker.py     # 15 unit tests using unittest
+data/expenses.json  # auto-created, stores all entries
+data/budgets.json   # stores monthly budget values
+4.2 Data Storage
+Expenses are stored as a JSON array. Each entry is a dictionary with five fields: id, amount, category, note, and date. JSON was chosen over CSV because it handles missing or optional fields (like notes) more cleanly, and is easier to manipulate in Python without any library.
+A separate budgets.json stores month-to-budget mappings, keyed by 'YYYY-MM' strings. This allows the user to set and retrieve budgets for any month independently.
+4.3 Core Functions
+The program is organized as a set of focused functions, each responsible for one action. Key ones include:
+add_expense() — validates input, generates an ID, and appends to the JSON file
+list_expenses() — reads and filters entries, prints a formatted table
+show_summary() — groups by category using defaultdict, computes percentages and draws a simple bar
+set_budget() and check_budget() — read/write budgets.json and compare against actual spend
+export_csv() — writes the JSON data out using Python's csv.DictWriter
+4.4 Input Validation
+The program validates every input before saving. Amount must be a positive number. Category must be from the fixed list of eight options. Date, if provided, must follow YYYY-MM-DD format and is verified using strptime. If any validation fails, the user gets a clear error message and nothing is written to disk.
+4.5 Command-Line Interface
+The interface uses sys.argv directly, without argparse. This was a deliberate choice — parsing arguments manually keeps the code simpler and avoids auto-generated help text that obscures the logic. The main() function reads the first argument as the command and dispatches to the appropriate function.
+
+5. Python Concepts Applied
+This project made use of the following concepts from the course:
+File I/O — reading and writing JSON and CSV files using open(), json.load/dump, csv.DictWriter
+Exception handling — try/except for JSON parsing errors, type conversion, and invalid input
+Functions — each feature is a named function with a single responsibility
+Lists and dictionaries — expenses are lists of dicts; budgets are dict of month-to-value
+String formatting — f-strings used throughout for clean, aligned terminal output
+datetime module — date.today() for current date, strptime() for validation
+os module — checking if files exist, creating directories with makedirs
+collections.defaultdict — for grouping amounts by category in the summary function
+sys.argv — for reading command-line arguments
+Unit testing with unittest — 15 test cases covering all major functions
+
+6. Challenges Faced
+Challenge 1: Designing the command interface
+The biggest design question was how to handle optional arguments. For example, 'list' accepts an optional category and an optional month, in any order. I solved this by checking whether each argument looks like a month string (matches YYYY-MM format with a single dash and seven characters). This avoids the need for named flags and keeps the command syntax natural.
+Challenge 2: Consistent ID generation
+At first I used a simple counter starting from 1, but this broke after deletions — the next entry would get an ID that had already existed. I fixed this by computing the maximum existing ID and adding 1, so IDs are always unique even after some entries are deleted.
+Challenge 3: Testing without affecting real data
+Running tests was overwriting the actual expenses.json file. I solved this by patching the DATA_FILE variable at the top of the test module, pointing it to a temporary directory created by tempfile.mkdtemp(). Each test class runs setUp() to clear this temp file, giving each test a clean starting state.
+Challenge 4: Readable terminal output
+Formatting a table in a terminal without an external library like tabulate requires careful use of f-strings with width specifiers. Getting the columns to align correctly — especially when Indian Rupee amounts vary in length — took a few iterations to get right. I ended up using fixed column widths with right-aligned amounts.
+
+7. What I Learned
+Building a complete, working tool from scratch — rather than completing exercises — changed how I thought about code structure. In exercises, the problem is already defined and the expected output is given. Here, I had to make dozens of small decisions: what the command syntax should look like, what happens when a file is empty or corrupted, how to generate IDs that stay unique, how to test without side effects.
+I also learned that simplicity is not the same as being basic. This project uses no external libraries, has no web interface, and stores data in flat JSON files. But it does its job reliably, has proper input validation, handles edge cases, and includes tests. That, I think, is what 'well-executed' means.
+Working with the standard library pushed me to understand what Python actually provides out of the box. I had assumed I would need to install something for CSV writing or argument parsing, but the standard library covered everything I needed. That was genuinely useful to discover.
+Writing tests after writing the code (as opposed to beforehand) also showed me how useful they are for catching bugs I had not considered — the ID collision issue, for instance, showed up immediately when I wrote the test for unique IDs.
+
+8. How to Run
+Requirements: Python 3.7 or above. No external libraries.
+Basic usage:
+python tracker.py add 150 food "lunch at mess"
+python tracker.py list
+python tracker.py summary 2025-03
+python tracker.py budget 3000
+python tracker.py status
+python tracker.py export
+
+To run the test suite:
+python test_tracker.py
+The full README inside the GitHub repository covers setup, all commands, examples, and the data format in detail.
+
+9. Conclusion
+The Student Expense Tracker is a small but complete tool that solves a real problem I face personally. It was built entirely with Python standard library tools, follows clean code practices, handles errors properly, and is covered by a set of unit tests.
+More importantly, it is a tool I will actually keep using. The best test of whether a project is genuinely useful is whether the person who built it reaches for it after the submission deadline — and I intend to.
+
