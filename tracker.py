@@ -9,6 +9,7 @@ import csv
 from datetime import datetime, date
 from collections import defaultdict
 
+
 DATA_FILE = "data/expenses.json"
 CATEGORIES = [
     "food",
@@ -265,7 +266,8 @@ def print_help():
     budget <amount> [YYYY-MM]               Set monthly budget
     status [YYYY-MM]                        Check budget usage
     export                                  Export to CSV
-Categories:
+
+  Categories:
     food, transport, stationery, entertainment,
     medicine, clothing, recharge, other
  Examples:
@@ -329,6 +331,7 @@ def main():
 
     elif command == "export":
         export_csv()
+
     else:
         print(f"  Unknown command: '{command}'. Run 'python tracker.py help' for usage.")
 
