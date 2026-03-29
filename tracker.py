@@ -1,9 +1,7 @@
-"""
-Student Expense Tracker
+"""Student Expense Tracker
 Author: Jishant Tanwar
 Reg. No.: 25BHI10093
 """
-
 import json
 import os
 import sys
@@ -11,9 +9,7 @@ import csv
 from datetime import datetime, date
 from collections import defaultdict
 
-
 DATA_FILE = "data/expenses.json"
-
 CATEGORIES = [
     "food",
     "transport",
@@ -24,8 +20,6 @@ CATEGORIES = [
     "recharge",
     "other"
 ]
-
-
 def load_data():
     if not os.path.exists(DATA_FILE):
         return []
@@ -34,7 +28,6 @@ def load_data():
             return json.load(f)
         except json.JSONDecodeError:
             return []
-
 
 def save_data(expenses):
     os.makedirs("data", exist_ok=True)
@@ -83,7 +76,6 @@ def add_expense(amount, category, note="", entry_date=None):
     expenses.append(entry)
     save_data(expenses)
     print(f"  Added: Rs.{amount:.2f} under '{category}' on {entry_date}")
-
 
 def list_expenses(filter_category=None, filter_month=None):
     expenses = load_data()
@@ -169,7 +161,6 @@ def show_summary(filter_month=None):
     print(f"  {'Total':<16} Rs.{total:>7.2f}")
     print()
 
-
 def export_csv(output_file="data/expenses_export.csv"):
     expenses = load_data()
     if not expenses:
@@ -183,11 +174,9 @@ def export_csv(output_file="data/expenses_export.csv"):
 
     print(f"  Exported {len(expenses)} records to '{output_file}'")
 
-
 def set_budget(monthly_budget, month=None):
     if month is None:
         month = date.today().strftime("%Y-%m")
-
     try:
         monthly_budget = float(monthly_budget)
         if monthly_budget <= 0:
@@ -262,8 +251,6 @@ def check_budget(month=None):
     else:
         print("  Status   : On track")
     print()
-
-
 def print_help():
     print("""
   Student Expense Tracker - Jishant Tanwar (25BHI10093)
@@ -278,12 +265,10 @@ def print_help():
     budget <amount> [YYYY-MM]               Set monthly budget
     status [YYYY-MM]                        Check budget usage
     export                                  Export to CSV
-
-  Categories:
+Categories:
     food, transport, stationery, entertainment,
     medicine, clothing, recharge, other
-
-  Examples:
+ Examples:
     python tracker.py add 150 food "lunch at mess"
     python tracker.py add 50 transport "" 2025-03-10
     python tracker.py list
@@ -293,9 +278,7 @@ def print_help():
     python tracker.py budget 3000
     python tracker.py status
     python tracker.py delete 3
-    python tracker.py export
-""")
-
+    python tracker.py export""")
 
 def main():
     args = sys.argv[1:]
@@ -305,7 +288,6 @@ def main():
         return
 
     command = args[0].lower()
-
     if command == "add":
         if len(args) < 3:
             print("  Usage: python tracker.py add <amount> <category> [note] [date]")
@@ -335,21 +317,18 @@ def main():
     elif command == "summary":
         filter_month = args[1] if len(args) > 1 else None
         show_summary(filter_month)
-
     elif command == "budget":
         if len(args) < 2:
             print("  Usage: python tracker.py budget <amount> [YYYY-MM]")
             return
         month = args[2] if len(args) > 2 else None
         set_budget(args[1], month)
-
     elif command == "status":
         filter_month = args[1] if len(args) > 1 else None
         check_budget(filter_month)
 
     elif command == "export":
         export_csv()
-
     else:
         print(f"  Unknown command: '{command}'. Run 'python tracker.py help' for usage.")
 
